@@ -1,0 +1,8 @@
+CREATE TABLE flights (Year INT, Month INT, DayofMonth INT,  DayOfWeek INT, DepTime INT, CRSDepTime INT, ArrTime INT, CRSArrTime INT, UniqueCarrier STRING, FlightNum INT, TailNum STRING, ActualElapsedTime INT, CRSElapsedTime INT, AirTime INT, ArrDelay INT, DepDelay INT, Origin STRING, Dest STRING, Distance INT, TaxiIn INT, TaxiOut INT,Cancelled INT, Diverted INT)
+ROW FORMAT DELIMITED
+  FIELDS TERMINATED BY ',';
+
+LOAD DATA LOCAL INPATH 'groupprojectcl.csv'
+OVERWRITE INTO TABLE flights;
+
+ ALTER TABLE flights set tblproperties("skip.header.line.count"="1");
