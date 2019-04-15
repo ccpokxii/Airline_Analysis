@@ -1,3 +1,32 @@
+# Function to apply to a CSV file to convert a list of columns to integer index values.
+# 
+convertCSVColumns <- function(file, collist){
+  fulldata<-read.csv(file)
+  for (i in collist) {
+    fulldata[,i]<-convertColumn(fulldata[,i])
+  }
+  write.csv(fulldata, file, row.names=FALSE)
+}
+# The following function is called by convertCSVColumns. It converts a single 
+#column to integer indices.
+convertColumn <- function(values){
+  allvals<-as.character(values)
+  valslist<-sort(unique(allvals))
+  xx<-factor(allvals, valslist, labels=1:length(valslist))
+  rm(allvals)
+  rm(valslist)
+  gc()
+  as.numeric(levels(xx))[xx]
+}
+
+# Now use the function on the data. 
+convertCSVColumns("groupprojectcl.csv", c(9,11,17,18))
+
+x <- read.big.matrix("groupprojectcl.csv", header = TRUE, 
+                     backingfile = "gp.bin",
+                     descriptorfile = "gp.desc",
+                     type = "integer")
+
 #x <- read.big.matrix("AirlineDataGroupProject.csv", header = TRUE, 
                     # backingfile = "airproj.bin",
                      #descriptorfile = "airproj.desc",
