@@ -72,31 +72,3 @@ percentilearr = quantile(year98[,"ArrDelay"],na.rm=TRUE)
 #lbls <- paste(lbls,"%",sep="") # ad % to labels 
 #pie3D(slices, labels = lbls, main="Pie Chart of Delays by Day")
 
-#Yutong#
-# The streamgraph of the flights number everyday
-number <-as.data.frame(read.csv("count_day.csv",sep= "\t", header = FALSE))
-colnames(number) <- c("Year","Month","DayofMonth","Number")
-number$date <- as.Date(paste(number$Month, number$DayofMonth, sep = '-'),format = "%m-%d")
-streamgraph(number, "Year", "Number", "date") %>%
-  sg_fill_brewer("Spectral") %>%
-  sg_axis_x(tick_units = date)
-
-## The streamgraph of the flights number everyday by carrier
-number.dflights <- as.data.frame(read.csv("count_carrier_day.csv",sep= "\t", header = FALSE))
-colnames(number.dflights) <- c("Year","Month","DayofMonth","Number","Carrier")
-number.dflights$date <- as.Date(paste(number.dflights$Year, number.dflights$Month, number.dflights$DayofMonth, sep = '-'))
-
-number.dflights1998 <- number.dflights[which(number.dflights["Year"] == "1998"),]
-number.dflights2002 <- number.dflights[which(number.dflights["Year"] == "2002"),]
-
-streamgraph(number.dflights1998, "Carrier", "Number", "date") %>%
-  sg_fill_brewer("Spectral") %>%
-  sg_axis_x(tick_units = date)
-
-streamgraph(number.dflights2002, "Carrier", "Number", "date") %>%
-  sg_fill_brewer("Spectral") %>%
-  sg_axis_x(tick_units = date)
-
-
-
-
