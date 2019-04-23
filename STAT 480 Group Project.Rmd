@@ -1,0 +1,131 @@
+---
+title: "STAT 480 Group Project"
+subtitle: "Airline Data Analysis: 1998 & 2002"
+author: "Yutong Wang, Yihang Zhang, Brandon Nsiah-Ababio, Siddharth Ahuja"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Goal of Project
+
+The general goal of the project is to extract interesting information, trends and comparisons about flights in the United States during the years of 1998 and 2002.
+
+To achieve this goal we will explore the following areas:
+
+* Trends in cancellations of flights
+* Trends in delayed arrival or departure of flights
+* Trends in number of flights
+* Trends in diversions of flights
+* Trends of flights by region
+
+# Data Description
+
+
+
+\newpage
+
+# Setup for Project
+
+## Downloading the necessary data (done in terminal):
+
+```{}
+wget https://raw.githubusercontent.com/coatless/stat490uiuc/master/airlines/airlines_data.sh
+chmod u+x airlines_data.sh
+./airlines_data.sh 2002 2002
+mv airlines.csv groupproject.csv
+./airlines_data.sh 1998 1998
+tail -n+2 airlines.csv >> groupproject.csv
+```
+
+&nbsp;
+
+## Deleting columns with all or most data missing (done in terminal):
+
+```{}
+cut -d ',' -f 23,25,26,27,28,29 --complement groupproject.csv > groupprojectcl.csv
+```
+
+&nbsp;
+
+## Creating the necessary tables (done in hive):
+
+Creating table with flight data:
+
+```{}
+CREATE TABLE flights (Year INT, Month INT, DayofMonth INT,  DayOfWeek INT, DepTime INT, 
+CRSDepTime INT, ArrTime INT, CRSArrTime INT, UniqueCarrier STRING, FlightNum INT, TailNum STRING, 
+ActualElapsedTime INT, CRSElapsedTime INT, AirTime INT, ArrDelay INT, DepDelay INT, Origin STRING, 
+Dest STRING, Distance INT, TaxiIn INT, TaxiOut INT,Cancelled INT, Diverted INT)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+LOAD DATA LOCAL INPATH 'groupprojectcl.csv'
+OVERWRITE INTO TABLE flights;
+
+ALTER TABLE flights set tblproperties("skip.header.line.count"="1");
+```
+
+&nbsp;
+
+Creating table with airport data:
+
+&nbsp;
+
+```{}
+CREATE TABLE airports (iata STRING, airport STRING, city STRING, state STRING, 
+country STRING, lat DOUBLE, long DOUBLE)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+LOAD DATA LOCAL INPATH 'airports.csv'
+OVERWRITE INTO TABLE airports;
+
+ALTER TABLE airports set tblproperties("skip.header.line.count"="1");
+```
+&nbsp;
+
+## Loading data into a big matrix (done in R):
+
+```{r}
+library('biganalytics')
+
+air <-attach.big.matrix("airproj.desc")
+year98 <- air[which(air[,"Year"] == 1998),]
+year02 <- air[which(air[,"Year"] == 2002),]
+
+Sun = which(year98[,"DayOfWeek"]==1)
+Mon = which(year98[,"DayOfWeek"]==2)
+Tues = which(year98[,"DayOfWeek"]==3)
+Wed = which(year98[,"DayOfWeek"]==4)
+Thurs = which(year98[,"DayOfWeek"]==5)
+Fri = which(year98[,"DayOfWeek"]==6)
+Sat = which(year98[,"DayOfWeek"]==7)
+
+
+Jan = which(year98[,"Month"]==1)
+Feb = which(year98[,"Month"]==2)
+Mar = which(year98[,"Month"]==3)
+Apr = which(year98[,"Month"]==4)
+May = which(year98[,"Month"]==5)
+Jun = which(year98[,"Month"]==6)
+Jul = which(year98[,"Month"]==7)
+Aug = which(year98[,"Month"]==8)
+Sep = which(year98[,"Month"]==9)
+Oct = which(year98[,"Month"]==10)
+Nov = which(year98[,"Month"]==11)
+Dec = which(year98[,"Month"]==12)
+
+```
+
+\newpage
+
+# Initial Observations
+
+Missing airlines 'American Eagle'
+
+# Cancellation Trends
+
+
