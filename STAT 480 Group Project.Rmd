@@ -68,7 +68,7 @@ OVERWRITE INTO TABLE flights;
 ALTER TABLE flights set tblproperties("skip.header.line.count"="1");
 ```
 
-&nbsp;
+&nbsp; 
 
 Creating table with airport data:
 
@@ -85,40 +85,49 @@ OVERWRITE INTO TABLE airports;
 
 ALTER TABLE airports set tblproperties("skip.header.line.count"="1");
 ```
+
 &nbsp;
 
 ## Loading data into a big matrix (done in R):
 
 ```{r}
-library('biganalytics')
+#install.packages('biganalytics')
+#install.packages('foreach')
+library(biganalytics)
+library(foreach)
 
-air <-attach.big.matrix("airproj.desc")
-year98 <- air[which(air[,"Year"] == 1998),]
-year02 <- air[which(air[,"Year"] == 2002),]
+## Function to apply to a CSV file to convert a list of columns to integer index values.
+## 
+#convertCSVColumns <- function(file, collist){
+#  fulldata<-read.csv(file)
+#   for (i in collist) {
+#     fulldata[,i]<-convertColumn(fulldata[,i])
+#   }
+#   write.csv(fulldata, file, row.names=FALSE)
+# }
+# # The following function is called by convertCSVColumns. It converts a single
+# #column to integer indices.
+# convertColumn <- function(values){
+#   allvals<-as.character(values)
+#   valslist<-sort(unique(allvals))
+#   xx<-factor(allvals, valslist, labels=1:length(valslist))
+#   rm(allvals)
+#   rm(valslist)
+#   gc()
+#   as.numeric(levels(xx))[xx]
+# }
+# 
+# # Now use the function on the data.
+# convertCSVColumns("groupprojectcl.csv", c(9,11,17,18))
+# 
+# x <- read.big.matrix("groupprojectcl.csv", header = TRUE,
+#                      backingfile = "gp.bin",
+#                      descriptorfile = "gp.desc",
+#                      type = "integer")
 
-Sun = which(year98[,"DayOfWeek"]==1)
-Mon = which(year98[,"DayOfWeek"]==2)
-Tues = which(year98[,"DayOfWeek"]==3)
-Wed = which(year98[,"DayOfWeek"]==4)
-Thurs = which(year98[,"DayOfWeek"]==5)
-Fri = which(year98[,"DayOfWeek"]==6)
-Sat = which(year98[,"DayOfWeek"]==7)
-
-
-Jan = which(year98[,"Month"]==1)
-Feb = which(year98[,"Month"]==2)
-Mar = which(year98[,"Month"]==3)
-Apr = which(year98[,"Month"]==4)
-May = which(year98[,"Month"]==5)
-Jun = which(year98[,"Month"]==6)
-Jul = which(year98[,"Month"]==7)
-Aug = which(year98[,"Month"]==8)
-Sep = which(year98[,"Month"]==9)
-Oct = which(year98[,"Month"]==10)
-Nov = which(year98[,"Month"]==11)
-Dec = which(year98[,"Month"]==12)
-
+x <- attach.big.matrix('gp.desc')
 ```
+
 
 \newpage
 
@@ -126,6 +135,102 @@ Dec = which(year98[,"Month"]==12)
 
 Missing airlines 'American Eagle'
 
+\newpage
+
 # Cancellation Trends
 
+```{r}
+year = split(1:nrow(x), x[, 'Year'])
+cancelA = foreach(i = year, .combine = cbind) %do% {
+  CancelledCount = sum(x[i, 'Cancelled'])
+  Total = length(x[i, 'Cancelled'])
+  list(CancelledCount = CancelledCount, Total = Total)
+}
+colnames(cancelA) = c('1998', '2002')
+cancelA
+```
 
+```{r}
+cancelB = foreach(i = year, .combine = cbind) %do% {
+  CancelledPercent = (sum(x[i, 'Cancelled'])/(length(x[i, 'Cancelled'])))*100
+  list(CancelledPercent = CancelledPercent)
+}
+colnames(cancelB) = c('1998', '2002')
+cancelB
+
+# Plot with Cancelled Count and Percent on same bar graph, two y-axis?
+```
+
+by Month
+
+1998
+```{r}
+month1998 = split(1:sum(x[, 'Year'] == 1998), x[x[, 'Year'] == 1998, 'Month'])
+
+month1998A = foreach(i = month1998, .combine=cbind) %do% {
+  a = sum(x[i,'Cancelled'])
+  b = length(x[i, 'Cancelled'])
+  c = (a/b)*100
+  list(CancelledCount1998 = a, Total1998 = b, CancelledPercent1998 = c)
+}
+colnames(month1998A) = c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+month1998A
+```
+
+2002
+```{r}
+month2002 = split(1:sum(x[, 'Year'] == 2002), x[x[, 'Year'] == 2002, 'Month'])
+
+month2002A = foreach(i = month2002, .combine=cbind) %do% {
+  a = sum(x[i,'Cancelled'])
+  b = length(x[i, 'Cancelled'])
+  c = (a/b)*100
+  list(CancelledCount2002 = a, Total2002 = b, CancelledPercent2002 = c)
+}
+colnames(month2002A) = c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+month2002A
+```
+
+by Day
+
+1998
+```{r}
+day1998 = split(1:sum(x[, 'Year'] == 1998), x[x[, 'Year'] == 1998, 'DayOfWeek'])
+
+day1998A = foreach(i = day1998, .combine=cbind) %do% {
+  a = sum(x[i,'Cancelled'])
+  b = length(x[i, 'Cancelled'])
+  c = (a/b)*100
+  list(CancelledCount1998 = a, Total1998 = b, CancelledPercent1998 = c)
+}
+colnames(day1998A) = c('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat')
+day1998A
+```
+```{r}
+day2002 = split(1:sum(x[, 'Year'] == 2002), x[x[, 'Year'] == 2002, 'DayOfWeek'])
+
+day2002A = foreach(i = day2002, .combine=cbind) %do% {
+  a = sum(x[i,'Cancelled'])
+  b = length(x[i, 'Cancelled'])
+  c = (a/b)*100
+  list(CancelledCount2002 = a, Total2002 = b, CancelledPercent2002 = c)
+}
+colnames(day2002A) = c('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat')
+day2002A
+```
+
+
+Plot Month
+```{r}
+#install.packages('ggplot2')
+
+library(ggplot2)
+CancelledCountA = unlist(c(month1998A[1,], month2002A[1,]))
+month = rep(seq(1:12), times = 2)
+yearMonth = rep(c(1998, 2002), each = 12)
+
+dfMonthCount = as.data.frame(t(rbind(yearMonth, month, CancelledCountA)))
+dfMonthCount
+
+ggplot(dfMonthCount, aes(x = factor(month), y = CancelledCountA, fill = factor(yearMonth))) + geom_bar(stat = 'identity', position = 'dodge')
+```
