@@ -42,7 +42,7 @@ tail -n+2 airlines.csv >> groupproject.csv
 
 &nbsp;
 
-## Deleting columns with all or most data missing (done in terminal):
+## Deleting columns with all data missing (done in terminal):
 
 ```{}
 cut -d ',' -f 23,25,26,27,28,29 --complement groupproject.csv > groupprojectcl.csv
@@ -70,22 +70,31 @@ ALTER TABLE flights set tblproperties("skip.header.line.count"="1");
 
 &nbsp; 
 
-Creating table with airport data:
+Creating table with the daily number of flights:
 
 &nbsp;
 
 ```{}
-CREATE TABLE airports (iata STRING, airport STRING, city STRING, state STRING, 
-country STRING, lat DOUBLE, long DOUBLE)
-ROW FORMAT DELIMITED
-FIELDS TERMINATED BY ',';
-
-LOAD DATA LOCAL INPATH 'airports.csv'
-OVERWRITE INTO TABLE airports;
-
-ALTER TABLE airports set tblproperties("skip.header.line.count"="1");
+Hive -e "SELECT Year, Month, DayofMonth, count (DayofMonth) FROM flights GROUP BY Year, Month, DayofMonth" > count_day.csv
 ```
+&nbsp;
 
+Creating table with the daily number of flights for Carriers:
+
+&nbsp;
+
+```{}
+Hive -e "SELECT Year, Month, DayofMonth, UniqueCarrier,  count (UniqueCarrier) FROM flights GROUP BY Year, Month, DayofMonth, UniqueCarrier" > count_carrier_day.csv
+```
+&nbsp;
+
+Creating table with the number of flights for destinations:
+
+&nbsp;
+
+```{}
+hive -e "SELECT Year, Dest, count (Dest) FROM flights GROUP BY Year, Dest" > dest.csv
+```
 &nbsp;
 
 ## Loading data into a big matrix (done in R):
