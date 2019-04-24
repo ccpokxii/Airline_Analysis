@@ -136,6 +136,8 @@ library(foreach)
 #                      type = "integer")
 
 x <- attach.big.matrix('gp.desc')
+year98 <- x[which(x[,"Year"] == 1998),]
+year02 <- x[which(x[,"Year"] == 2002),]
 ```
 
 
