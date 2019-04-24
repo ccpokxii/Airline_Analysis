@@ -487,6 +487,18 @@ month1998A = foreach(i = month1998, .combine=cbind) %do% {
 }
 colnames(month1998A) = c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 month1998A
+
+###Improvement###
+month1998 = split(1:nrow(year98), year98[, 'Month'])
+month1998A = foreach(i = month1998, .combine=cbind) %do% {
+  a = sum(year98[i,'Cancelled'])
+  b = length(year98[i, 'Cancelled'])
+  c = (a/b)*100
+  list(CancelledCount1998 = a, Total1998 = b, CancelledPercent1998 = c)
+}
+colnames(month1998A) = c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+month1998A
+
 ```
 
 2002
