@@ -301,7 +301,11 @@ ggplot() +
   labs(title = "The Number of Landing Flights for Airports in 2002")+
   theme(plot.title = element_text(hjust = 0.5))
 ```
+Since the map in the package only contains the US mainland, the states of Alaska, Hawaii, and other off-shore insular areas are excluded. However, we can see some points on the map denote the airports in this area. In this plot, both the color and the size denotes the number of landing flights in this airport.  Since the range is large, we transfer the number of landing flights by the log. 
 
+For these two years, there are three obvious points in the middle of the graph. Combining the results of the treemap, we can see the airports are *Dallas Fort Worth International Airport(DFW)*, *Chicago O'Hare International Airport(ORD)* and *Hartsfield–Jackson Atlanta International Airport(ATL)* from left to right. Also, we can see the airports in the corner of the mainland are busier, which might connect the mainland and the other territory. 
+
+We can see the number of landing flights in the ATL in 2002 decreased compared to that in 1998.  In 2002, more points cluster in ORD and DFW. In other words, there are more flights landing around Chicago and Atlanta in 2002. Generally, the concentration of landing airports moved from the East to the Middle part. 
 
 
 
@@ -345,11 +349,10 @@ ggplot(mdivert, aes(x=Var1, y=value, color=as.factor(mdivert$Var2), group=as.fac
 ##By the quntile, we can find the busier and less busy airlines
 divert1998 <- divert1998[order(divert1998[,"Number"]),]
 divert2002 <- divert2002[order(divert2002[,"Number"]),]
-dvt98lb <- divert1998[c(1:max(which(divert1998[,"Number"]<3601))),] 
-dvt02lb <- divert2002[c(1:max(which(divert1998[,"Number"]<3601))),] 
 dvt98mb <- divert1998[-c(1:max(which(divert1998[,"Number"]<5203))),] 
 dvt02mb <- divert2002[-c(1:max(which(divert1998[,"Number"]<4710))),] 
 ```
+Since there are many airline routes, we only select important airports to analyze. The important airline routes are chosen based on the percentiles in the two years. We choose the number of airline routes above 95% percentiles. So, the number of diverting over 5203 in 1998, and that over 4710 are chosen. 
 
 ### Plot the Net on map
 The greneral situation in 1998
@@ -405,6 +408,8 @@ for(i in 1:nrow(flight2002)) {
   lines(arc, col=edge.col[edge.ind], lwd=edge.ind/30)
 }
 ```
+
+The color tending to be yellow means this route is busier, which means there are more airlines in this direction. The blue means the routes are less busy. In both of the plots, we can see the middle part is busier, and Chicago is the hub of the airlines. There are various airlines connecting Chicago and other airports. Besides, we can see there is a triangle around Califonia and an extra edge. The airports are LAX, SFO, LAS, and PHX from left to right. Compared these two years, there are fewer airlines in the east. The plots are a little messy, so we will focus on the important airports selected by the quantile in the following part. 
 
 The more busy flights in 1998
 ```{r}
