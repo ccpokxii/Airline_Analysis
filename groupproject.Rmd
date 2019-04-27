@@ -1,0 +1,283 @@
+---
+title: "groupproject"
+author: "Yihang Zhang"
+date: "4/24/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Trends for elapsed time
+
+##Goal of the analysis
+The goal for this part of analysis is to figure the facts related to elapsed time of the flights in this two-year data. The analysis would basically focus on analyzing the "over elapsed time" of the flight, the time difference between the actual elapsed time and scheduled elapsed time. The analysis would include the statistical summary index, the connection with the aiports and carriers information and the proper visualizations.
+
+##Data preparation
+The analysis of Elapsed trend consists of three parts. 
+The first part is to read the original data file as a matrix by using read.big.matix, subset the matrix into two based on their years and then perform the data analysis.
+The second part of the analysis reads the original data file as data.frame , further subset into small data.frame by demands and then to get the desired output from the analysis.
+The final part is a visualization using treemap to compare the total flights number and over elapsed time flights number by carrier for the two-year data.
+
+##Methodology
+The first part of the analysis is focused on the flight data itself, without connecting with the other two csv files containing the information of carriers and airports. 
+By using read.big matrix, we read the data file into the R and transfer the csv file as a big matrix. So as to perform the analysis separately for different years, we than subset the matrix into two smaller matrixes, one for year 1998 and the other one for 2002.
+In order to discover the information about Elapsed time hidden, we created a new variable called “Elapsed”, which equals to the actual elapsed time minus the scheduled elapsed time. 
+Therefore, we are able to look at the trend of “Elapsed”. Firstly, we look at the number of flights whose “Elapsed” are bigger than 0, which also means that those flights have used mor	e time than scheduled to finish the journey. Then we calculate the percentage of these flights on the basis of total flight in each year. Similarly, the same methods are used on the flights whose “Elapsed” are 0 and smaller than 0.
+Then we perform some visualizations for the overtime flights, whose “Elapsed” are bigger than 0. We obtain the 50th to 90th percentiles for these flights separately for each year to discover the trend on percentile. 
+At last, we use for loops to count the number of the overtime days for each month for the two different year and then display the trends on the plot.
+
+The second part of the analysis is conducted through the combination of three original csv files without any data transformation. 
+Firstly we try to connect the flight information with the carrier information and to see what kind of fact of Elapsed time we could discover. Same as the matrix part, we create a new column also called “Elapsed”, equaling ActualElpasedTime minus CRSElapsedTime. Since we want to focus on the flights using more time than scheduled, so we extract all the observations whose “Elapsed” are bigger than 0. Then we extract all the carriers from these observations and merge with the carrier csv to match the carrier information and display the output as a data.frame.
+Secondly, we focus on the information revealed after the combination of the over elapsed time flights and airport data. By using the observations whose “Elapsed” are bigger than 0 and the airport data, this time we merge them by the origin airport and destination airport separately to see the over elapsed time condition by airports. 
+
+The last part of the analysis, we perform a treemap to display the relationship between the total flights number and the over elapsed time flights by carrier contained in the data.
+
+
+##Set up the matrix
+```{r}
+#Other Trends
+installIfNeeded = function(cliblist){
+  libsNeeded = cliblist
+  libsNeeded = libsNeeded[!(libsNeeded %in% installed.packages()[,"Package"])]
+  if(length(libsNeeded)>0) install.packages(libsNeeded)
+}
+
+installIfNeeded(c("bit64", "RSQLite", "foreach", "parallel", "doSNOW", "ggplot2", "biganalytics"))
+
+setwd("~/Stat480/RDataScience/Group")
+
+library(biganalytics)
+x <- read.big.matrix("groupprojectcl.csv", header = TRUE, 
+                     backingfile = "gp.bin",
+                     descriptorfile = "gp.desc",
+                     type = "integer", extraCols = "Elapsed")
+x1=x[x[,"Year"]==1998,]
+x2=x[x[,"Year"]==2002,]
+
+```
+
+##Create the new variable for 1998
+```{r}
+for (i in 1:nrow(x1)) {
+  x1[i,"Elapsed"]=x1[i,"ActualElapsedTime"]-x1[i,"CRSElapsedTime"]}
+
+```
+
+##Statistical summary for 1998
+```{r}
+over=x1[x1[,"Elapsed"]>0,]
+nrow(over)
+nrow(over)/nrow(x1)
+
+intime=x1[x1[,"Elapsed"]<0,]
+nrow(intime)
+nrow(intime)/nrow(x1)
+
+ontime=x1[x1[,"Elapsed"]==0,]
+nrow(ontime)
+nrow(ontime)/nrow(x1)
+
+mean(x1[,"Elapsed"],na.rm=TRUE)
+```
+
+The number of over elapsed time flights, flights using more time than scheduled, in 1998 is 2045203, accounting for 37.98% of the total flight amount.
+The number of in-time flights, flights using less time than scheduled, is 3222543, accounting for 59.85% of the total flight amount.
+The number of on-time flights, flights using exactly the same time as scheduled, is 432315, accounting for 8.03% of the total flight amount.
+The mean over elapsed time of the flights in 1998 is -1.262, which means that on average, flights in 1998 spend 1.262 minutes less than the scheduled time to finish the journey.
+
+##Quantile plot for 1998
+```{r}
+myProbs <- seq(0.5, 0.99, by=0.01)
+elapsedQuantiles=quantile(x1[, "Elapsed"], myProbs, 
+                          na.rm = TRUE)
+library(ggplot2)
+library(reshape2) 
+eq <- melt(elapsedQuantiles)
+eq=cbind(percentile=rownames(eq), eq)
+names(eq) <- c("percentile", "elapsed")
+eq$percentile=as.double(eq$percentile)+50
+qplot(percentile, elapsed, data = eq, color = percentile, geom = "line", title = "lol")
+
+```
+
+The plot demonstrates that there are 60% of the flights in 1998 spend no more than scheduled elapsed time to finish the journey. About 30% of flights spend under 10 minutes more than scheduled elapsed time, and there are 10% of flights spending above 10 minutes more than scheduled time, with the most reaching nearly 43 minutes.
+
+##Create the new variable for 2002
+```{r}
+for (i in 1:nrow(x2)) {
+  x2[i,"Elapsed"]=x2[i,"ActualElapsedTime"]-x2[i,"CRSElapsedTime"]}
+
+```
+
+##Statistical summary for 2002
+```{r}
+over2=x2[x2[,"Elapsed"]>0,]
+nrow(over2)
+nrow(over2)/nrow(x2)
+
+intime=x2[x2[,"Elapsed"]<0,]
+nrow(intime)
+nrow(intime)/nrow(x2)
+
+ontime=x2[x2[,"Elapsed"]==0,]
+nrow(ontime)
+nrow(ontime)/nrow(x2)
+
+mean(x2[,"Elapsed"],na.rm=TRUE)
+
+```
+The number of over elapsed time flights, flights using more time than scheduled, in 2002 is 1755078, accounting for 33.29% of the total flight amount.
+The number of in-time flights, flights using less time than scheduled, is 3339619, accounting for 63.35% of the total flight amount.
+The number of on-time flights, flights using exactly the same time as scheduled, is 323660, accounting for 6.14% of the total flight amount.
+The mean over elapsed time of the flights in 1998 is -2.306, which means that on average, flights in 1998 spend 2.306 minutes less than the scheduled time to finish the journey.
+
+
+##Quantile plot for 2002
+```{r}
+myProbs <- seq(0.5, 0.99, by=0.01)
+elapsedQuantiles=quantile(x2[, "Elapsed"], myProbs, 
+                          na.rm = TRUE)
+library(ggplot2)
+library(reshape2) 
+eq <- melt(elapsedQuantiles)
+eq=cbind(percentile=rownames(eq), eq)
+names(eq) <- c("percentile", "elapsed")
+eq$percentile=as.double(eq$percentile)+50
+qplot(percentile, elapsed, data = eq, color = percentile, geom = "line")
+
+```
+
+The plot demonstrates that there are about 67% of the flights in 2002 spend no more than scheduled elapsed time to finish the journey. About 23% of flights spend under 10 minutes more than scheduled elapsed time, and there are 10% of flights spend above 10 minutes more than scheduled time, with the most also reaching nearly 40 minutes.
+
+##Scatter plot for two year
+```{r}
+
+dayCount = integer(12)
+for (i in 1:12) { 
+  dayCount[i] <-  sum(over[,"Month"] == i, na.rm=TRUE)}
+month=seq(1:12)
+plot(month, dayCount, type = "o", col="blue", ylim=c(110000, 180000))
+
+dayCount2 = integer(12)
+for (i in 1:12) { 
+  dayCount2[i] <-  sum(over2[,"Month"] == i, na.rm=TRUE)}
+lines(dayCount2, type = "o", col="red")
+title(main = "Days of over scheduled Elapsed time")
+
+```
+Based on the plot, a clear map of the number of days with flights spend more time than scheduled elapsed time by month is shown. We can see that in general, in 1998 there are more flights than in 2002, no matter in which month, and trends of two years are somehow similar. Both years have a obvious decrease in Feburary and the lowest points in Sepetember. The most difference is in Feburary equaling to about 30000, and the least difference is in October, which is around 10000.
+
+#Elapsed connecting with carriers
+
+##Set up the data.frame
+```{r}
+groupprojectcsv=read.csv("groupprojectcl.csv")
+groupprojectcl=groupprojectcsv[c("UniqueCarrier","ActualElapsedTime", "CRSElapsedTime")]
+groupprojectcl$Elapsed=groupprojectcl$ActualElapsedTime-groupprojectcl$CRSElapsedTime
+OvertimeEl=groupprojectcl[which(groupprojectcl$Elapsed>0),]
+
+otcarrier=table(OvertimeEl$UniqueCarrier)
+otcarrier=sort(otcarrier)
+otcarrier=as.data.frame(otcarrier)
+colnames(otcarrier) <- c("code", "freq")
+otcarrier
+```
+This table gives us the count of flights whose actual elapsed time is longer than scheduled elapsed time of every carrier contained in the data.
+
+##Merge the data by carrier code
+```{r}
+carriercsv=read.csv("carriers.csv")
+OvertimeCarrier=merge(otcarrier, carriercsv, by.x="code", by.y="Code")
+OvertimeCarrier[order(-OvertimeCarrier$freq),] 
+
+```
+
+Based on the output, we get the table of the carriers by the desending order of the number of over elapsed time flights in both 1998 and 2002. DL has the most flights that spend more time than scheduled elapsed time, which is 668165. While the carrier with the least number of flights spendinbg more time than scheduled elapsed time is TW, which is 95314.
+
+#Elapsed connecting with origin airport
+
+##Set up the data.frame
+```{r}
+airportcsv=read.csv("airports.csv")
+groupprojectcl2=groupprojectcsv[c("Origin", "Dest", "ActualElapsedTime", "CRSElapsedTime")]
+groupprojectcl2$Elapsed=groupprojectcl2$ActualElapsedTime-groupprojectcl2$CRSElapsedTime
+OvertimeEl2=groupprojectcl2[which(groupprojectcl2$Elapsed>0),]
+
+otorigin=table(OvertimeEl2$Origin)
+otorigin=sort(otorigin)
+otorigin=as.data.frame(otorigin)
+colnames(otorigin) <- c("airport", "freq")
+otorigin
+```
+This table shows the count of flights flights whose actual elapsed time is longer than scheduled elapsed time departed from every airports contained in the data.
+
+##Merge the data by airport code
+```{r}
+OvertimeOrigin=merge(otorigin, airportcsv, by.x="airport", by.y="iata")
+OvertimeOrigin[order(-OvertimeOrigin$freq),] 
+```
+Based on this output, we acquire the list of the origin airports and their fundamental information by the descending order of the number of over elapsed time flights in both 1998 and 2002. The airport with the most number of over elapsed time flights is ORD, IL, while the airport with the least number is MKK.
+
+#Elapsed connectin with the destination airport
+
+##Set up the data.frame
+```{r}
+otdest=table(OvertimeEl2$Dest)
+otdest=sort(otdest)
+otdest=as.data.frame(otdest)
+colnames(otdest) <- c("airport", "freq")
+otdest
+```
+This table shows the count of flights flights whose actual elapsed time is longer than scheduled elapsed time arrived at every airports contained in the data.
+
+##Merge the data by airport code
+```{r}
+OvertimeDest=merge(otdest, airportcsv, by.x="airport", by.y="iata")
+OvertimeDest[order(-OvertimeDest$freq),] 
+
+```
+According to this table, we can see the list of the destination airports and their basic information by desending order of the number of over elapsed time flights in both 1998 and 2002. The airport with the most counts is also ORD, which is 216266, while the airport with the least counts is LNY.
+
+#Visualization: to compare the total flights number and over elapsed time flights number by carrier for the two-year data
+```{r}
+installIfNeeded(c("treemap"))
+library(treemap)
+carriermap=data.frame(table(groupprojectcl$UniqueCarrier))
+colnames(carriermap) <- c("carrier", "freq")
+
+AAcsv=groupprojectcl[which(groupprojectcl$UniqueCarrier=='AA'),]
+mean(AAcsv$Elapsed, na.rm=TRUE)
+AScsv=groupprojectcl[which(groupprojectcl$UniqueCarrier=='AS'),]
+mean(AScsv$Elapsed, na.rm=TRUE)
+COcsv=groupprojectcl[which(groupprojectcl$UniqueCarrier=='CO'),]
+mean(COcsv$Elapsed, na.rm=TRUE)
+DLcsv=groupprojectcl[which(groupprojectcl$UniqueCarrier=='DL'),]
+mean(DLcsv$Elapsed, na.rm=TRUE)
+HPcsv=groupprojectcl[which(groupprojectcl$UniqueCarrier=='HP'),]
+mean(HPcsv$Elapsed, na.rm=TRUE)
+MQcsv=groupprojectcl[which(groupprojectcl$UniqueCarrier=='MQ'),]
+mean(MQcsv$Elapsed, na.rm=TRUE)
+NWcsv=groupprojectcl[which(groupprojectcl$UniqueCarrier=='NW'),]
+mean(NWcsv$Elapsed, na.rm=TRUE)
+TWcsv=groupprojectcl[which(groupprojectcl$UniqueCarrier=='TW'),]
+mean(TWcsv$Elapsed, na.rm=TRUE)
+UAcsv=groupprojectcl[which(groupprojectcl$UniqueCarrier=='UA'),]
+mean(UAcsv$Elapsed, na.rm=TRUE)
+UScsv=groupprojectcl[which(groupprojectcl$UniqueCarrier=='US'),]
+mean(UScsv$Elapsed, na.rm=TRUE)
+WNcsv=groupprojectcl[which(groupprojectcl$UniqueCarrier=='WN'),]
+mean(WNcsv$Elapsed, na.rm=TRUE)
+
+carriermap$meanelapsed=c(-3.143742, 0.184173, -0.3499615, -0.2344786, -1.110613, -1.315059, -1.841802, -1.498755, -1.364657, -1.584349, -3.710075)
+
+treemap(carriermap,
+        index=c("carrier"),
+        vSize="freq",
+        vColor="meanelapsed",
+        type="value")
+
+```
+Based on the plot, it is indicated that in terms of total flight volume, WN is the largeset, then DL, AA and UA. The flight number of these four carriers are accounted for more than half of the total flight number in 1998 and 2002. 
+The other fact is that with the largest flight volumn, WN also has the least mean over elapsed time among all carriers, which is -3.5, meaning that WN's flights spend 3.5 minutes less than scheduled time on average. The second least one is AA, and then are the UW and TW. AS is the carrier seems to have the most serious over elapsed time problem of its flights.
