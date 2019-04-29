@@ -49,7 +49,7 @@ eq <- melt(elapsedQuantiles)
 eq=cbind(percentile=rownames(eq), eq)
 names(eq) <- c("percentile", "elapsed")
 eq$percentile=as.double(eq$percentile)+50
-qplot(percentile, elapsed, main="Quantile plot for 1998", data = eq, color = percentile, geom = "line", title = "lol")
+qplot(percentile, elapsed, main="Quantile plot for 1998", data = eq, color = percentile, geom = "line")
 
 
 ##Create the new variable for 2002
