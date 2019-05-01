@@ -95,7 +95,7 @@ colnames(odc) <- c("Year","Origin", "Dest","UniqueCarrier")
 odc98 <- odc[which(odc[,"Year"] == 1998),]
 odc02 <- odc[which(odc[,"Year"] == 2002),]
 ###heatmap for 1998
-carrier1998 = split(1:nrow(odc98), odc[, 'UniqueCarrier'])
+carrier1998 = split(1:nrow(year98), odc98[, 'UniqueCarrier'])
 library(biganalytics)
 carrier98 = foreach(i = carrier1998, .combine=cbind) %do% {
   a = sum(year98[i,'Cancelled']) 
@@ -115,7 +115,7 @@ heatmap.2(t(carrier98[,-6]), scale='column',
           cexCol ='1')
 
 ###heat map for 2002
-carrier2002 = split(1:nrow(odc02), odc[, 'UniqueCarrier'])
+carrier2002 = split(1:nrow(year02), odc02[, 'UniqueCarrier'])
 library(biganalytics)
 carrier02 = foreach(i = carrier2002, .combine=cbind) %do% {
   a = sum(year02[i,'Cancelled']) 
@@ -128,8 +128,9 @@ carrier02 = matrix(unlist(carrier02), nrow=4)
 colnames(carrier02) <- names(carrier2002)
 rownames(carrier02) <- c('Cancel', 'ArrDelay','DepDelay', 'Total')
 library(gplots)
-heatmap.2(t(carrier02[,-6]), scale='column',
+heatmap.2(t(carrier02[,-8]), scale='column',
           main = 'Statistics of Carriers in 2002',
           keysize=2,
           cexRow ='1',
           cexCol ='1')
+
