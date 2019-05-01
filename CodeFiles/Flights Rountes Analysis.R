@@ -1,15 +1,19 @@
-## The number of departure flights and landing flights for airports in the two years
-data <- read.csv("divert.csv", header=FALSE,sep = "\t")
-colnames(data) <- c("Year","Origin", "Dest")
-library(treemap)
-org98 <- as.data.frame(table(as.character(data[which(data["Year"] == "1998"),"Origin"])))
-des98 <- as.data.frame(table(as.character(data[which(data["Year"] == "1998"),"Dest"])))
+## The number of departure flights and landing flights for airports in the two years(Treemap for airports)
+route <- read.csv("route.csv", header=FALSE,sep = "\t")# These datasets created by hive
+colnames(route) <- c("Year","Origin", "Dest")
+
+#prepare the data
+org98 <- as.data.frame(table(as.character(route[which(route["Year"] == "1998"),"Origin"])))
+des98 <- as.data.frame(table(as.character(route[which(route["Year"] == "1998"),"Dest"])))
 d98 <- merge(org98,des98, by.x="Var1",by.y="Var1")
 colnames(d98) <- c("Name","Origin","Dest")
-org02 <- table(as.character(data[which(data["Year"] == "2002"),"Origin"]))
-des02 <- table(as.character(data[which(data["Year"] == "2002"),"Dest"]))
+org02 <- table(as.character(route[which(route["Year"] == "2002"),"Origin"]))
+des02 <- table(as.character(route[which(route["Year"] == "2002"),"Dest"]))
 d02 <- merge(org02,des02, by.x="Var1",by.y="Var1")
 colnames(d02) <- c("Name","Origin","Dest")
+
+#Construct the treemap
+library(treemap)
 treemap(d98,
         index = c("Name"),
         vSize = "Origin",
@@ -23,19 +27,20 @@ treemap(d02,
         vColor = "Dest",
         type = "value",
         palette = "Spectral",
-        title = "The Treemap of Departure flights and Landing flights in 1998")
+        title = "The Treemap of Departure flights and Landing flights in 2002")
 
 ##The number of Des in the two years
 ###reference https://www.r-graph-gallery.com/330-bubble-map-with-ggplot2/
-dest <- read.csv("dest.csv", header=FALSE, sep="\t" )
+dest <- read.csv("dest.csv", header=FALSE, sep="\t" ) #dest.csv is created in hive
 colnames(dest) <- c("Year","Dest","Number")
-airport <- read.table("airports.csv",header=T, sep=',')
+airport <- read.table("airports.csv",header=T, sep=',')# airports.csv is the given data sets
 destl <- merge(dest,airport, by.x="Dest", by.y="iata")
 destl98 <- destl[which(destl[,"Year"] == 1998),]
 destl98<- destl98[order(destl98[,"Number"]),]
 destl02 <- destl[which(destl[,"Year"] == 2002),]
 destl02 <- destl02[order(destl02[,"Number"]),]
 
+#Construct the map plots
 usam <- map_data("usa")
 library(maps)
 library(viridis)
